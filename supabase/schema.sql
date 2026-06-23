@@ -1,16 +1,17 @@
 -- ============================================================
 -- EEE (Exit Exam Ethiopia) – Full Database Schema
--- Run this once in Supabase SQL Editor (Dashboard → SQL Editor)
+-- Run this in Supabase SQL Editor (Dashboard → SQL Editor → Run)
+-- Safe to re-run: uses IF NOT EXISTS and ON CONFLICT DO NOTHING
 -- ============================================================
 
 -- ─── Extensions ─────────────────────────────────────────────
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ─── Tables ──────────────────────────────────────────────────
 
--- Users
 CREATE TABLE IF NOT EXISTS users (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   full_name     TEXT        NOT NULL,
   email         TEXT        UNIQUE NOT NULL,
   password_hash TEXT        NOT NULL,
@@ -20,9 +21,8 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Departments
 CREATE TABLE IF NOT EXISTS departments (
-  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   name        TEXT        NOT NULL,
   name_am     TEXT        NOT NULL DEFAULT '',
   name_om     TEXT        NOT NULL DEFAULT '',
@@ -31,9 +31,8 @@ CREATE TABLE IF NOT EXISTS departments (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Exams
 CREATE TABLE IF NOT EXISTS exams (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   department_id UUID        NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
   year          INTEGER     NOT NULL,
   title         TEXT        NOT NULL,
@@ -42,9 +41,8 @@ CREATE TABLE IF NOT EXISTS exams (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Questions
 CREATE TABLE IF NOT EXISTS questions (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   exam_id         UUID        NOT NULL REFERENCES exams(id) ON DELETE CASCADE,
   question_number INTEGER     NOT NULL,
   question_text   TEXT        NOT NULL,
@@ -57,21 +55,19 @@ CREATE TABLE IF NOT EXISTS questions (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Payments
 CREATE TABLE IF NOT EXISTS payments (
-  id             UUID         PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id        UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  department_id  UUID         NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
+  id             UUID          PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id        UUID          NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  department_id  UUID          NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
   amount         DECIMAL(10,2) NOT NULL DEFAULT 200.00,
   screenshot_url TEXT,
-  status         TEXT         NOT NULL DEFAULT 'pending'
-                              CHECK (status IN ('pending','approved','rejected')),
-  telegram_sent  BOOLEAN      NOT NULL DEFAULT FALSE,
-  created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+  status         TEXT          NOT NULL DEFAULT 'pending'
+                               CHECK (status IN ('pending','approved','rejected')),
+  telegram_sent  BOOLEAN       NOT NULL DEFAULT FALSE,
+  created_at     TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  updated_at     TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 
--- User ↔ Department access (unlocked departments)
 CREATE TABLE IF NOT EXISTS user_department_access (
   id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id       UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -80,7 +76,6 @@ CREATE TABLE IF NOT EXISTS user_department_access (
   UNIQUE (user_id, department_id)
 );
 
--- Exam results
 CREATE TABLE IF NOT EXISTS exam_results (
   id              UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id         UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -91,7 +86,6 @@ CREATE TABLE IF NOT EXISTS exam_results (
   completed_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- App settings (key/value store)
 CREATE TABLE IF NOT EXISTS app_settings (
   id         UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   key        TEXT        UNIQUE NOT NULL,
@@ -100,14 +94,14 @@ CREATE TABLE IF NOT EXISTS app_settings (
 );
 
 -- ─── Indexes ─────────────────────────────────────────────────
-CREATE INDEX IF NOT EXISTS idx_exams_department   ON exams(department_id);
-CREATE INDEX IF NOT EXISTS idx_questions_exam      ON questions(exam_id);
-CREATE INDEX IF NOT EXISTS idx_payments_user       ON payments(user_id);
-CREATE INDEX IF NOT EXISTS idx_payments_status     ON payments(status);
-CREATE INDEX IF NOT EXISTS idx_access_user         ON user_department_access(user_id);
-CREATE INDEX IF NOT EXISTS idx_results_user        ON exam_results(user_id);
+CREATE INDEX IF NOT EXISTS idx_exams_department ON exams(department_id);
+CREATE INDEX IF NOT EXISTS idx_questions_exam   ON questions(exam_id);
+CREATE INDEX IF NOT EXISTS idx_payments_user    ON payments(user_id);
+CREATE INDEX IF NOT EXISTS idx_payments_status  ON payments(status);
+CREATE INDEX IF NOT EXISTS idx_access_user      ON user_department_access(user_id);
+CREATE INDEX IF NOT EXISTS idx_results_user     ON exam_results(user_id);
 
--- ─── updated_at auto-update trigger ─────────────────────────
+-- ─── updated_at trigger ──────────────────────────────────────
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
@@ -130,27 +124,20 @@ CREATE TRIGGER trg_payments_updated_at
 -- ─── Storage buckets ─────────────────────────────────────────
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
-  'payment-screenshots',
-  'payment-screenshots',
-  FALSE,
-  5242880,   -- 5 MB
+  'payment-screenshots', 'payment-screenshots', FALSE, 5242880,
   ARRAY['image/jpeg','image/png','image/webp','image/gif']
 ) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
-  'exam-files',
-  'exam-files',
-  FALSE,
-  20971520,  -- 20 MB
+  'exam-files', 'exam-files', FALSE, 20971520,
   ARRAY[
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'application/vnd.ms-excel',
-    'text/plain',
-    'text/csv'
+    'text/plain','text/csv'
   ]
 ) ON CONFLICT (id) DO NOTHING;
 
@@ -164,13 +151,10 @@ ALTER TABLE user_department_access ENABLE ROW LEVEL SECURITY;
 ALTER TABLE exam_results           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE app_settings           ENABLE ROW LEVEL SECURITY;
 
--- All access goes through the service-role key (server-side API routes).
--- Deny everything for the anon and authenticated roles.
--- The Next.js API routes use the service role key which bypasses RLS entirely.
-
+-- All real access is via service-role key (bypasses RLS).
+-- Block direct anon/authenticated access to all tables.
 DO $$
-DECLARE
-  tbl TEXT;
+DECLARE tbl TEXT;
 BEGIN
   FOREACH tbl IN ARRAY ARRAY[
     'users','departments','exams','questions',
@@ -196,21 +180,34 @@ ON CONFLICT (key) DO NOTHING;
 
 -- ─── Seed: Departments ───────────────────────────────────────
 INSERT INTO departments (name, name_am, name_om, description) VALUES
-  ('Computer Science',       'ኮምፒዩተር ሳይንስ',      'Saayinsii Kompiyuutaraa',       'Computer Science Department'),
-  ('Information Technology', 'የመረጃ ቴክኖሎጂ',       'Teeknooloojii Odeeffannoo',     'Information Technology Department'),
-  ('Software Engineering',   'ሶፍትዌር ምህንድስና',     'Injinariingii Sooftiweeraa',    'Software Engineering Department'),
-  ('ICT',                    'ኢሲቲ',               'ICT',                           'Information & Communications Technology'),
-  ('Nursing',                'ነርሲንግ',              'Narsii',                        'Nursing Department'),
-  ('Accounting',             'አካውንቲንግ',           'Herreegaa',                     'Accounting Department'),
-  ('Economics',              'ኢኮኖሚክስ',            'Dinagdee',                      'Economics Department'),
-  ('Management',             'አስተዳደር',             'Bulchiinsa',                    'Management Department'),
-  ('Civil Engineering',      'ሲቪል ምህንድስና',        'Injinariingii Siviilii',        'Civil Engineering Department'),
-  ('Electrical Engineering', 'ኤሌክትሪካል ምህንድስና',   'Injinariingii Elektirikaala',   'Electrical Engineering Department')
+  ('Computer Science',       'ኮምፒዩተር ሳይንስ',    'Saayinsii Kompiyuutaraa',     'Computer Science Department'),
+  ('Information Technology', 'የመረጃ ቴክኖሎጂ',     'Teeknooloojii Odeeffannoo',   'Information Technology Department'),
+  ('Software Engineering',   'ሶፍትዌር ምህንድስና',   'Injinariingii Sooftiweeraa',  'Software Engineering Department'),
+  ('ICT',                    'ኢሲቲ',             'ICT',                         'Information & Communications Technology'),
+  ('Nursing',                'ነርሲንግ',            'Narsii',                      'Nursing Department'),
+  ('Accounting',             'አካውንቲንግ',         'Herreegaa',                   'Accounting Department'),
+  ('Economics',              'ኢኮኖሚክስ',          'Dinagdee',                    'Economics Department'),
+  ('Management',             'አስተዳደር',           'Bulchiinsa',                  'Management Department'),
+  ('Civil Engineering',      'ሲቪል ምህንድስና',      'Injinariingii Siviilii',      'Civil Engineering Department'),
+  ('Electrical Engineering', 'ኤሌክትሪካል ምህንድስና', 'Injinariingii Elektirikaala', 'Electrical Engineering Department')
 ON CONFLICT DO NOTHING;
 
+-- ─── Seed: Admin account ─────────────────────────────────────
+-- Password: Ayyuu@4313@  (bcrypt hash, 12 rounds)
+-- Generated with: bcrypt.hash('Ayyuu@4313@', 12)
+-- To regenerate: https://bcrypt-generator.com (rounds=12)
+INSERT INTO users (id, full_name, email, password_hash, is_admin)
+VALUES (
+  uuid_generate_v4(),
+  'EEE Administrator',
+  'milkiyaas43@gmail.com',
+  '$2a$12$8kWkwiBpQbfYBbnRDFNVnOenp.48ZtpX.6sHhfbRIBL8bbnfZf6tS',
+  TRUE
+)
+ON CONFLICT (email) DO NOTHING;
+
 -- ─── Done ────────────────────────────────────────────────────
--- After running this schema:
--- 1. Go to your Next.js app
--- 2. POST /api/admin/seed  { "secret": "eee-seed-2024" }
---    to create the admin account (milkiyaas43@gmail.com)
--- 3. Sign in at /auth/signin
+-- Admin login:
+--   Email:    milkiyaas43@gmail.com
+--   Password: Ayyuu@4313@
+--   URL:      /auth/signin  →  auto-redirects to /admin
