@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/auth.server";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ access: [] });
 

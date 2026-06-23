@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase";
-import { hashPassword, comparePassword } from "@/lib/auth";
+import { comparePassword } from "@/lib/auth";
 import { signJWT } from "@/lib/jwt";
 import { rateLimit } from "@/lib/rateLimit";
 
