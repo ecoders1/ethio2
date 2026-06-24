@@ -5,21 +5,46 @@ import { getAuthUser } from "@/lib/auth.server";
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const examId = searchParams.get("exam_id");
-  const freeOnly = searchParams.get("free_only") === "true";
 
   if (!examId) return NextResponse.json({ error: "exam_id required" }, { status: 400 });
 
   const payload = await getAuthUser();
   const supabase = createServerSupabaseClient();
 
-  // Check access
+  // Get exam + department
   const { data: exam } = await supabase
     .from("exams")
-    .select("*, departments(id)")
+    .select("id, is_free, department_id, departments(id)")
     .eq("id", examId)
     .single();
 
   if (!exam) return NextResponse.json({ error: "Exam not found" }, { status: 404 });
+
+  const deptId = exam.department_id;
+
+  // Determine how many questions to return
+  let limitTo20 = false;
+
+  if (!payload) {
+    // Not logged in — only free preview
+    limitTo20 = true;
+  } else if (payload.isAdmin) {
+    // Admin sees everything
+    limitTo20 = false;
+  } else if (exam.is_free) {
+    // Exam explicitly marked free — all questions
+    limitTo20 = false;
+  } else {
+    // Check if user has paid for this department
+    const { data: access } = await supabase
+      .from("user_department_access")
+      .select("id")
+      .eq("user_id", payload.userId)
+      .eq("department_id", deptId)
+      .maybeSingle();
+
+    limitTo20 = !access; // limit if no access record
+  }
 
   let query = supabase
     .from("questions")
@@ -27,26 +52,13 @@ export async function GET(req: NextRequest) {
     .eq("exam_id", examId)
     .order("question_number");
 
-  // For non-admin users without access, only return free questions (1-20)
-  if (!payload?.isAdmin && freeOnly) {
+  if (limitTo20) {
     query = query.lte("question_number", 20);
-  } else if (payload && !payload.isAdmin) {
-    // Check if user has department access
-    const { data: access } = await supabase
-      .from("user_department_access")
-      .select("id")
-      .eq("user_id", payload.userId)
-      .eq("department_id", (exam.departments as { id: string }).id)
-      .single();
-
-    if (!access && !exam.is_free) {
-      query = query.lte("question_number", 20);
-    }
   }
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ questions: data });
+  return NextResponse.json({ questions: data, limited: limitTo20 });
 }
 
 export async function POST(req: NextRequest) {
