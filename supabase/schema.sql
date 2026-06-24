@@ -1,14 +1,10 @@
 -- ============================================================
--- EEE (Exit Exam Ethiopia) – Full Database Schema
--- Run this in Supabase SQL Editor (Dashboard → SQL Editor → Run)
--- Safe to re-run: uses IF NOT EXISTS and ON CONFLICT DO NOTHING
+-- EEE (Exit Exam Ethiopia) – Schema Only (no seed data)
+-- Use SETUP_RUN_THIS_FIRST.sql for full setup with sample data
 -- ============================================================
 
--- ─── Extensions ─────────────────────────────────────────────
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
--- ─── Tables ──────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS users (
   id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -93,121 +89,29 @@ CREATE TABLE IF NOT EXISTS app_settings (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- ─── Indexes ─────────────────────────────────────────────────
-CREATE INDEX IF NOT EXISTS idx_exams_department ON exams(department_id);
-CREATE INDEX IF NOT EXISTS idx_questions_exam   ON questions(exam_id);
-CREATE INDEX IF NOT EXISTS idx_payments_user    ON payments(user_id);
-CREATE INDEX IF NOT EXISTS idx_payments_status  ON payments(status);
-CREATE INDEX IF NOT EXISTS idx_access_user      ON user_department_access(user_id);
-CREATE INDEX IF NOT EXISTS idx_results_user     ON exam_results(user_id);
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_exams_dept      ON exams(department_id);
+CREATE INDEX IF NOT EXISTS idx_questions_exam  ON questions(exam_id);
+CREATE INDEX IF NOT EXISTS idx_payments_user   ON payments(user_id);
+CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
+CREATE INDEX IF NOT EXISTS idx_access_user     ON user_department_access(user_id);
+CREATE INDEX IF NOT EXISTS idx_results_user    ON exam_results(user_id);
 
--- ─── updated_at trigger ──────────────────────────────────────
-CREATE OR REPLACE FUNCTION set_updated_at()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
-END;
-$$;
+-- Disable RLS (API uses service_role key)
+ALTER TABLE users                  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE departments            DISABLE ROW LEVEL SECURITY;
+ALTER TABLE exams                  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE questions              DISABLE ROW LEVEL SECURITY;
+ALTER TABLE payments               DISABLE ROW LEVEL SECURITY;
+ALTER TABLE user_department_access DISABLE ROW LEVEL SECURITY;
+ALTER TABLE exam_results           DISABLE ROW LEVEL SECURITY;
+ALTER TABLE app_settings           DISABLE ROW LEVEL SECURITY;
 
-DROP TRIGGER IF EXISTS trg_users_updated_at    ON users;
-DROP TRIGGER IF EXISTS trg_payments_updated_at ON payments;
+GRANT ALL ON ALL TABLES    IN SCHEMA public TO service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
+GRANT USAGE ON SCHEMA public TO service_role;
 
-CREATE TRIGGER trg_users_updated_at
-  BEFORE UPDATE ON users
-  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-CREATE TRIGGER trg_payments_updated_at
-  BEFORE UPDATE ON payments
-  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
--- ─── Storage buckets ─────────────────────────────────────────
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES (
-  'payment-screenshots', 'payment-screenshots', FALSE, 5242880,
-  ARRAY['image/jpeg','image/png','image/webp','image/gif']
-) ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES (
-  'exam-files', 'exam-files', FALSE, 20971520,
-  ARRAY[
-    'application/pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/vnd.ms-excel',
-    'text/plain','text/csv'
-  ]
-) ON CONFLICT (id) DO NOTHING;
-
--- ─── Row Level Security ───────────────────────────────────────
-ALTER TABLE users                  ENABLE ROW LEVEL SECURITY;
-ALTER TABLE departments            ENABLE ROW LEVEL SECURITY;
-ALTER TABLE exams                  ENABLE ROW LEVEL SECURITY;
-ALTER TABLE questions              ENABLE ROW LEVEL SECURITY;
-ALTER TABLE payments               ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_department_access ENABLE ROW LEVEL SECURITY;
-ALTER TABLE exam_results           ENABLE ROW LEVEL SECURITY;
-ALTER TABLE app_settings           ENABLE ROW LEVEL SECURITY;
-
--- All real access is via service-role key (bypasses RLS).
--- Block direct anon/authenticated access to all tables.
-DO $$
-DECLARE tbl TEXT;
-BEGIN
-  FOREACH tbl IN ARRAY ARRAY[
-    'users','departments','exams','questions',
-    'payments','user_department_access','exam_results','app_settings'
-  ] LOOP
-    EXECUTE format(
-      'DROP POLICY IF EXISTS deny_all ON %I;
-       CREATE POLICY deny_all ON %I FOR ALL TO anon, authenticated USING (FALSE);',
-      tbl, tbl
-    );
-  END LOOP;
-END;
-$$;
-
--- ─── Seed: App settings ───────────────────────────────────────
-INSERT INTO app_settings (key, value) VALUES
-  ('department_price',  '200'),
-  ('cbe_account',       '1000458067857'),
-  ('telebirr_account',  '0943133184'),
-  ('cbe_birr_account',  '0991575614'),
-  ('telegram_username', '@milkibn')
-ON CONFLICT (key) DO NOTHING;
-
--- ─── Seed: Departments ───────────────────────────────────────
-INSERT INTO departments (name, name_am, name_om, description) VALUES
-  ('Computer Science',       'ኮምፒዩተር ሳይንስ',    'Saayinsii Kompiyuutaraa',     'Computer Science Department'),
-  ('Information Technology', 'የመረጃ ቴክኖሎጂ',     'Teeknooloojii Odeeffannoo',   'Information Technology Department'),
-  ('Software Engineering',   'ሶፍትዌር ምህንድስና',   'Injinariingii Sooftiweeraa',  'Software Engineering Department'),
-  ('ICT',                    'ኢሲቲ',             'ICT',                         'Information & Communications Technology'),
-  ('Nursing',                'ነርሲንግ',            'Narsii',                      'Nursing Department'),
-  ('Accounting',             'አካውንቲንግ',         'Herreegaa',                   'Accounting Department'),
-  ('Economics',              'ኢኮኖሚክስ',          'Dinagdee',                    'Economics Department'),
-  ('Management',             'አስተዳደር',           'Bulchiinsa',                  'Management Department'),
-  ('Civil Engineering',      'ሲቪል ምህንድስና',      'Injinariingii Siviilii',      'Civil Engineering Department'),
-  ('Electrical Engineering', 'ኤሌክትሪካል ምህንድስና', 'Injinariingii Elektirikaala', 'Electrical Engineering Department')
-ON CONFLICT DO NOTHING;
-
--- ─── Seed: Admin account ─────────────────────────────────────
--- Password: Ayyuu@4313@  (bcrypt hash, 12 rounds)
--- Generated with: bcrypt.hash('Ayyuu@4313@', 12)
--- To regenerate: https://bcrypt-generator.com (rounds=12)
-INSERT INTO users (id, full_name, email, password_hash, is_admin)
-VALUES (
-  uuid_generate_v4(),
-  'EEE Administrator',
-  'milkiyaas43@gmail.com',
-  '$2a$12$8kWkwiBpQbfYBbnRDFNVnOenp.48ZtpX.6sHhfbRIBL8bbnfZf6tS',
-  TRUE
-)
-ON CONFLICT (email) DO NOTHING;
-
--- ─── Done ────────────────────────────────────────────────────
--- Admin login:
---   Email:    milkiyaas43@gmail.com
---   Password: Ayyuu@4313@
---   URL:      /auth/signin  →  auto-redirects to /admin
+INSERT INTO storage.buckets (id, name, public) VALUES
+  ('payment-screenshots', 'payment-screenshots', false),
+  ('exam-files', 'exam-files', false)
+ON CONFLICT (id) DO NOTHING;
