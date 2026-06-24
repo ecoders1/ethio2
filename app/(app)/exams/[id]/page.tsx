@@ -178,7 +178,21 @@ export default function ExamPage() {
   }
 
   if (!q) {
-    return <div className="px-4 py-6 text-center text-gray-500">No questions available.</div>;
+    return (
+      <div className="px-4 py-6 text-center animate-fade-in">
+        <div className="text-6xl mb-4">📭</div>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">No Questions Yet</h2>
+        <p className="text-gray-500 text-sm mb-2">
+          The admin hasn&apos;t uploaded questions for this exam yet.
+        </p>
+        <p className="text-gray-400 text-xs mb-6">
+          Your access is active — questions will appear here once added.
+        </p>
+        <button onClick={() => router.back()} className="btn-primary px-8 py-3">
+          ← Go Back
+        </button>
+      </div>
+    );
   }
 
   const isFreePreview = !exam?.is_free && questions.length <= 20;
