@@ -58,8 +58,8 @@ export default function DepartmentDetailPage() {
         <h1 className="text-xl font-bold relative">{getDeptName(dept)}</h1>
         <div className="flex items-center gap-2 mt-2 relative">
           {hasAccess
-            ? <span className="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-medium">✓ Full Access</span>
-            : <span className="bg-yellow-400/20 text-yellow-200 text-xs px-3 py-1 rounded-full font-medium">🔒 Q1–20 Free · Pay to unlock all</span>
+            ? <span className="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-medium">✓ Full Access – All questions unlocked</span>
+            : <span className="bg-yellow-400/20 text-yellow-200 text-xs px-3 py-1 rounded-full font-medium">🔒 Q1–20 free preview · Pay to unlock all</span>
           }
         </div>
       </div>
@@ -69,26 +69,22 @@ export default function DepartmentDetailPage() {
       <div className="space-y-3">
         {EXAM_YEARS.map(year => {
           const exam = getExamForYear(year);
-          // 2015 = sample (Q1-20 free for all)
-          const isSample = year === 2015;
-          // Locked = has no access AND not sample AND not individually free
-          const isLocked = !isSample && !hasAccess && !exam?.is_free;
-          // No exam uploaded yet for this year
+          // ALL uploaded exams are locked — Q1-20 always free by question number
+          // Only unlocked if user paid for this department
+          const isLocked = !hasAccess && !exam?.is_free;
           const notUploaded = !exam;
 
           const handleClick = () => {
-            if (notUploaded && !isLocked) return; // coming soon, no action
+            if (notUploaded) return;
             if (isLocked) router.push(`/payment/${id}`);
-            else if (exam) router.push(`/exams/${exam.id}`);
+            else router.push(`/exams/${exam.id}`);
           };
 
           return (
             <button key={year} onClick={handleClick}
               className={`w-full card text-left flex items-center justify-between transition-all ${
-                notUploaded && isSample ? "opacity-60 cursor-default" :
-                notUploaded && isLocked ? "cursor-pointer hover:shadow-md" :
                 notUploaded ? "opacity-50 cursor-default" :
-                "hover:shadow-md hover:-translate-y-0.5"
+                "hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
               }`}>
               <div className="flex items-center gap-3">
                 {/* Year badge */}
@@ -97,7 +93,7 @@ export default function DepartmentDetailPage() {
                   notUploaded ? "bg-gray-50 text-gray-300" :
                   "text-white"
                 }`} style={!isLocked && !notUploaded ? { background: "linear-gradient(135deg,#16a34a,#15803d)" } : {}}>
-                  {isLocked ? "🔒" : notUploaded ? "📭" : year}
+                  {notUploaded ? "📭" : isLocked ? "🔒" : year}
                 </div>
 
                 <div>
@@ -105,11 +101,9 @@ export default function DepartmentDetailPage() {
                   <div className="text-xs text-gray-500 mt-0.5">
                     {notUploaded
                       ? "Coming soon"
-                      : isSample
-                        ? "Q1–20 free · Q21–100 requires payment"
-                        : isLocked
-                          ? "Pay 200 ETB to unlock"
-                          : "All questions unlocked"}
+                      : isLocked
+                        ? "Q1–20 free preview · Pay 200 ETB to unlock all"
+                        : "All questions unlocked"}
                   </div>
                 </div>
               </div>
@@ -118,8 +112,6 @@ export default function DepartmentDetailPage() {
               <div className="flex items-center gap-2 flex-shrink-0">
                 {notUploaded ? (
                   <span className="text-xs bg-gray-100 text-gray-400 px-2 py-1 rounded-full">Soon</span>
-                ) : isSample ? (
-                  <span className="badge-free">{t("free")}</span>
                 ) : isLocked ? (
                   <span className="badge-locked">{t("locked")}</span>
                 ) : (

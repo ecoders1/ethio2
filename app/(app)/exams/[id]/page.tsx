@@ -181,6 +181,7 @@ export default function ExamPage() {
     return <div className="px-4 py-6 text-center text-gray-500">No questions available.</div>;
   }
 
+  const isFreePreview = !exam?.is_free && questions.length <= 20;
   const progress = ((current + 1) / questions.length) * 100;
 
   return (
@@ -189,6 +190,14 @@ export default function ExamPage() {
       {warning && (
         <div className="fixed top-16 left-0 right-0 mx-4 z-50 bg-red-600 text-white text-center py-2 px-4 rounded-xl text-sm font-medium shadow-lg">
           {warning}
+        </div>
+      )}
+
+      {/* Free preview notice */}
+      {isFreePreview && (
+        <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-2.5 flex items-center gap-2 text-sm text-yellow-800">
+          <span>🔒</span>
+          <span><strong>Free Preview</strong> – Showing Q1–20. Pay 200 ETB to unlock all questions.</span>
         </div>
       )}
 
