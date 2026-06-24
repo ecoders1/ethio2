@@ -52,10 +52,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       <aside className={`fixed top-0 left-0 h-full w-64 bg-gray-900 z-50 transform transition-transform lg:translate-x-0 lg:static lg:z-auto ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-6 border-b border-gray-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center text-white font-black">E</div>
+            <div className="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center text-white font-black text-xs leading-tight text-center px-1">EE</div>
             <div>
-              <div className="text-white font-bold">EEE Admin</div>
-              <div className="text-gray-400 text-xs">Exit Exam Ethiopia</div>
+              <div className="text-white font-bold text-sm">Exit Exam Ethiopia</div>
+              <div className="text-gray-400 text-xs">Admin Panel</div>
             </div>
           </div>
         </div>

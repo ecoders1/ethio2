@@ -91,7 +91,7 @@ export default function PWAInstallPrompt() {
             style={{ background: "linear-gradient(135deg,#16a34a,#15803d)" }}>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-black text-white text-xs">
-                EEE
+                EE
               </div>
               <span className="text-white font-bold text-sm">Install Exit Exam Ethiopia</span>
             </div>

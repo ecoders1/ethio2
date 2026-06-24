@@ -1,21 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#16a34a"/>
       <stop offset="100%" stop-color="#14532d"/>
     </linearGradient>
   </defs>
-  <!-- Background rounded square -->
-  <rect width="192" height="192" rx="40" fill="url(#bg)"/>
-  <!-- EEE text -->
-  <text x="96" y="115" font-family="Arial Black, Arial, sans-serif"
-    font-size="64" font-weight="900" fill="white"
-    text-anchor="middle" dominant-baseline="middle">EEE</text>
-  <!-- Ethiopian flag stripe bottom -->
-  <rect x="0" y="172" width="64" height="20" rx="0" fill="#16a34a"/>
-  <rect x="64" y="172" width="64" height="20" fill="#d97706"/>
-  <rect x="128" y="172" width="64" height="20" rx="0" fill="#dc2626"/>
-  <!-- Bottom corners rounded -->
-  <rect x="0" y="172" width="40" height="20" fill="url(#bg)"/>
-  <rect x="152" y="172" width="40" height="20" fill="url(#bg)"/>
+  <rect width="192" height="192" rx="40" fill="url(#g)"/>
+  <text x="96" y="78" font-family="Arial Black, Arial, sans-serif" font-size="22" font-weight="900" fill="white" text-anchor="middle">Exit Exam</text>
+  <text x="96" y="108" font-family="Arial Black, Arial, sans-serif" font-size="22" font-weight="900" fill="white" text-anchor="middle">Ethiopia</text>
+  <rect x="0" y="164" width="64" height="20" fill="#16a34a" opacity="0.9"/>
+  <rect x="64" y="164" width="64" height="20" fill="#d97706" opacity="0.9"/>
+  <rect x="128" y="164" width="64" height="20" fill="#dc2626" opacity="0.9"/>
 </svg>

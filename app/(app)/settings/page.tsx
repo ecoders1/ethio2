@@ -109,7 +109,7 @@ export default function SettingsPage() {
       {/* App info */}
       <div className="card bg-gray-50">
         <div className="text-center text-sm text-gray-500">
-          <div className="font-bold text-gray-700 mb-1">EEE – Exit Exam Ethiopia</div>
+          <div className="font-bold text-gray-700 mb-1">Exit Exam Ethiopia</div>
           <div className="text-xs">Version 1.0.0 · &quot;Prepare, Practice, Pass.&quot;</div>
           <div className="flex justify-center gap-1 mt-2">
             <div className="w-4 h-1 rounded-full bg-green-500" />

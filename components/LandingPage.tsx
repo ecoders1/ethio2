@@ -22,7 +22,7 @@ function LandingContent() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #0f4c2a 0%, #166534 50%, #14532d 100%)" }}>
         <div className="text-white text-center">
-          <div className="text-4xl font-black mb-2">EEE</div>
+          <div className="text-2xl font-black mb-2">Exit Exam Ethiopia</div>
           <div className="text-green-300 text-sm">Loading...</div>
         </div>
       </div>
@@ -53,7 +53,7 @@ function LandingContent() {
         {/* Logo */}
         <div className="mb-8">
           <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-white/15 backdrop-blur-sm border border-white/20 shadow-2xl mb-4">
-            <span className="text-4xl font-black text-white">EEE</span>
+            <span className="text-lg font-black text-white text-center leading-tight px-1">Exit Exam Ethiopia</span>
           </div>
           <div className="text-white font-black text-2xl tracking-wide">Exit Exam Ethiopia</div>
           <div className="text-white/60 text-xs tracking-widest uppercase mt-1">Ethiopian University Exit Exam Prep</div>

@@ -3,9 +3,9 @@ export type Language = "en" | "am" | "om";
 export const translations: Record<string, Record<Language, string>> = {
   // Landing
   welcome: {
-    en: "Welcome to EEE",
-    am: "እንኳን ወደ EEE መጡ",
-    om: "Baga gara EEE dhuftan",
+    en: "Welcome to Exit Exam Ethiopia",
+    am: "እንኳን ወደ Exit Exam Ethiopia መጡ",
+    om: "Baga gara Exit Exam Ethiopia dhuftan",
   },
   tagline: {
     en: "Prepare, Practice, Pass.",

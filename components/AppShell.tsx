@@ -45,7 +45,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
         <div className="text-center">
-          <div className="text-4xl font-black text-green-700 mb-2">EEE</div>
+          <div className="text-2xl font-black text-green-700 mb-2">Exit Exam Ethiopia</div>
           <div className="text-green-500 text-sm">Loading...</div>
         </div>
       </div>
@@ -63,9 +63,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-black"
-              style={{ background: "linear-gradient(135deg, #16a34a, #15803d)" }}>E</div>
-            <span className="font-bold text-gray-800 text-sm">EEE</span>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-black"
+              style={{ background: "linear-gradient(135deg, #16a34a, #15803d)" }}>EE</div>
+            <span className="font-bold text-gray-800 text-sm">Exit Exam Ethiopia</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="text-sm text-gray-600">{t("welcomeUser")},</span>
