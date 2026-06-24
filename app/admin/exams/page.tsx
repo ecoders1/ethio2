@@ -20,6 +20,7 @@ export default function AdminExamsPage() {
   const [deleting, setDeleting]       = useState<string | null>(null);
   const [search, setSearch]           = useState("");
   const [filterDept, setFilterDept]   = useState("");
+  const [filterStatus, setFilterStatus] = useState<"" | "active" | "inactive">("");
   const [toast, setToast]             = useState("");
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
@@ -84,6 +85,7 @@ export default function AdminExamsPage() {
 
   const filtered = exams
     .filter(e => !filterDept || e.department_id === filterDept)
+    .filter(e => !filterStatus || (filterStatus === "active" ? e.is_active : !e.is_active))
     .filter(e => !search ||
       e.title.toLowerCase().includes(search.toLowerCase()) ||
       e.departments?.name.toLowerCase().includes(search.toLowerCase())
@@ -132,6 +134,25 @@ export default function AdminExamsPage() {
           <option value="">All Departments</option>
           {depts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
+      </div>
+
+      {/* Active/Inactive filter tabs */}
+      <div className="flex gap-2">
+        {[
+          { val: "", label: "All", count: exams.length },
+          { val: "active", label: "✅ Active", count: exams.filter(e => e.is_active).length },
+          { val: "inactive", label: "⏸ Inactive", count: exams.filter(e => !e.is_active).length },
+        ].map(tab => (
+          <button key={tab.val}
+            onClick={() => setFilterStatus(tab.val as "" | "active" | "inactive")}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              filterStatus === tab.val
+                ? "bg-green-600 text-white"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+            }`}>
+            {tab.label} <span className="ml-1 opacity-70 text-xs">{tab.count}</span>
+          </button>
+        ))}
       </div>
 
       {/* Table */}
@@ -187,7 +208,11 @@ export default function AdminExamsPage() {
                         {e.is_free ? "🔒 Set Paid" : "🆓 Set Free"}
                       </button>
                       <button onClick={() => handleToggleActive(e)}
-                        className="text-xs px-2 py-1.5 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 font-medium whitespace-nowrap">
+                        className={`text-xs px-2 py-1.5 rounded-lg font-medium whitespace-nowrap transition-all ${
+                          e.is_active
+                            ? "bg-orange-50 text-orange-600 hover:bg-orange-100"
+                            : "bg-green-50 text-green-700 hover:bg-green-100"
+                        }`}>
                         {e.is_active ? "⏸ Deactivate" : "▶ Activate"}
                       </button>
                       <button onClick={() => handleDelete(e)} disabled={deleting === e.id}
