@@ -55,7 +55,8 @@ function LandingContent() {
           <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-white/15 backdrop-blur-sm border border-white/20 shadow-2xl mb-4">
             <span className="text-4xl font-black text-white">EEE</span>
           </div>
-          <div className="text-white/80 text-sm tracking-widest uppercase font-medium">Exit Exam Ethiopia</div>
+          <div className="text-white font-black text-2xl tracking-wide">Exit Exam Ethiopia</div>
+          <div className="text-white/60 text-xs tracking-widest uppercase mt-1">Ethiopian University Exit Exam Prep</div>
         </div>
 
         {/* Welcome */}

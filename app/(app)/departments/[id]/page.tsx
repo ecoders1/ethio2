@@ -6,6 +6,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface Exam { id: string; year: number; title: string; is_free: boolean; }
 interface Department { id: string; name: string; name_am: string; name_om: string; }
 
+// Always show these year buttons on every department
+const EXAM_YEARS = [2015, 2016, 2017, 2018];
+
 export default function DepartmentDetailPage() {
   const params = useParams();
   const id = params.id as string;
@@ -23,9 +26,7 @@ export default function DepartmentDetailPage() {
       fetch("/api/access").then(r => r.json()),
     ]).then(([dData, eData, aData]) => {
       setDept(dData.departments?.find((d: Department) => d.id === id) || null);
-      // Sort by year ascending
-      const sorted = (eData.exams || []).sort((a: Exam, b: Exam) => a.year - b.year);
-      setExams(sorted);
+      setExams(eData.exams || []);
       setHasAccess((aData.access || []).includes(id));
       setLoading(false);
     });
@@ -33,6 +34,8 @@ export default function DepartmentDetailPage() {
 
   const getDeptName = (d: Department) =>
     language === "am" ? d.name_am || d.name : language === "om" ? d.name_om || d.name : d.name;
+
+  const getExamForYear = (year: number) => exams.find(e => e.year === year);
 
   if (loading) return (
     <div className="px-4 py-6 space-y-3">
@@ -44,91 +47,109 @@ export default function DepartmentDetailPage() {
 
   return (
     <div className="px-4 py-6 animate-fade-in">
-      <button onClick={() => router.back()} className="flex items-center gap-2 text-green-600 font-medium mb-4">← Back</button>
+      <button onClick={() => router.back()} className="flex items-center gap-2 text-green-600 font-medium mb-4">
+        ← Back
+      </button>
 
-      {/* Header card */}
-      <div className="card mb-6" style={{ background: "linear-gradient(135deg,#16a34a,#15803d)" }}>
-        <h1 className="text-xl font-bold text-white">{getDeptName(dept)}</h1>
-        <div className="flex items-center gap-2 mt-2">
+      {/* Header */}
+      <div className="rounded-2xl p-5 mb-6 text-white relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg,#16a34a,#15803d)" }}>
+        <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-6 translate-x-6" />
+        <h1 className="text-xl font-bold relative">{getDeptName(dept)}</h1>
+        <div className="flex items-center gap-2 mt-2 relative">
           {hasAccess
             ? <span className="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-medium">✓ Full Access</span>
-            : <span className="bg-yellow-400/20 text-yellow-200 text-xs px-3 py-1 rounded-full font-medium">🔒 Partial Access – first 20 questions free</span>
+            : <span className="bg-yellow-400/20 text-yellow-200 text-xs px-3 py-1 rounded-full font-medium">🔒 Q1–20 Free · Pay to unlock all</span>
           }
         </div>
       </div>
 
-      {/* Exam list — only exams uploaded by admin are shown */}
-      {exams.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
-          <div className="text-5xl mb-3">📭</div>
-          <p className="font-medium text-gray-600">No exams available yet.</p>
-          <p className="text-sm mt-1">Check back later or contact admin.</p>
-        </div>
-      ) : (
-        <>
-          <h2 className="font-bold text-gray-800 mb-3">Available Exams</h2>
-          <div className="space-y-3">
-            {exams.map((exam, idx) => {
-              // First exam (lowest year) = sample/free (Q1-20 free for everyone)
-              const isSampleExam = idx === 0;
-              // Locked if not free AND user has no access
-              const isLocked = !exam.is_free && !hasAccess && !isSampleExam;
+      {/* Exam year buttons — always show 2015, 2016, 2017, 2018 */}
+      <h2 className="font-bold text-gray-800 mb-3">Exam Years</h2>
+      <div className="space-y-3">
+        {EXAM_YEARS.map(year => {
+          const exam = getExamForYear(year);
+          // 2015 = sample (Q1-20 free for all)
+          const isSample = year === 2015;
+          // Locked = has no access AND not sample AND not individually free
+          const isLocked = !isSample && !hasAccess && !exam?.is_free;
+          // No exam uploaded yet for this year
+          const notUploaded = !exam;
 
-              return (
-                <button key={exam.id}
-                  onClick={() => isLocked ? router.push(`/payment/${id}`) : router.push(`/exams/${exam.id}`)}
-                  className="w-full card text-left flex items-center justify-between hover:shadow-md transition-all hover:-translate-y-0.5">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold ${
-                      isLocked ? "bg-gray-100 text-gray-400" : "text-white"
-                    }`} style={!isLocked ? { background: "linear-gradient(135deg,#16a34a,#15803d)" } : {}}>
-                      {isLocked ? "🔒" : "📝"}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-800">{exam.title}</div>
-                      <div className="text-xs text-gray-500">
-                        {isSampleExam
-                          ? "Sample exam – Q1–20 free for all users"
-                          : isLocked
-                            ? "Locked – Pay to unlock full access"
-                            : "Full access unlocked"}
-                      </div>
-                    </div>
+          const handleClick = () => {
+            if (notUploaded && !isLocked) return; // coming soon, no action
+            if (isLocked) router.push(`/payment/${id}`);
+            else if (exam) router.push(`/exams/${exam.id}`);
+          };
+
+          return (
+            <button key={year} onClick={handleClick}
+              className={`w-full card text-left flex items-center justify-between transition-all ${
+                notUploaded && isSample ? "opacity-60 cursor-default" :
+                notUploaded && isLocked ? "cursor-pointer hover:shadow-md" :
+                notUploaded ? "opacity-50 cursor-default" :
+                "hover:shadow-md hover:-translate-y-0.5"
+              }`}>
+              <div className="flex items-center gap-3">
+                {/* Year badge */}
+                <div className={`w-14 h-14 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 ${
+                  isLocked ? "bg-gray-100 text-gray-400" :
+                  notUploaded ? "bg-gray-50 text-gray-300" :
+                  "text-white"
+                }`} style={!isLocked && !notUploaded ? { background: "linear-gradient(135deg,#16a34a,#15803d)" } : {}}>
+                  {isLocked ? "🔒" : notUploaded ? "📭" : year}
+                </div>
+
+                <div>
+                  <div className="font-semibold text-gray-800">{year} Exam</div>
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    {notUploaded
+                      ? "Coming soon"
+                      : isSample
+                        ? "Q1–20 free · Q21–100 requires payment"
+                        : isLocked
+                          ? "Pay 200 ETB to unlock"
+                          : "All questions unlocked"}
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {isSampleExam
-                      ? <span className="badge-free">{t("free")}</span>
-                      : isLocked
-                        ? <span className="badge-locked">{t("locked")}</span>
-                        : <span className="badge-unlocked">{t("unlocked")}</span>
-                    }
-                    <span className="text-gray-400">›</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
+                </div>
+              </div>
+
+              {/* Badge */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {notUploaded ? (
+                  <span className="text-xs bg-gray-100 text-gray-400 px-2 py-1 rounded-full">Soon</span>
+                ) : isSample ? (
+                  <span className="badge-free">{t("free")}</span>
+                ) : isLocked ? (
+                  <span className="badge-locked">{t("locked")}</span>
+                ) : (
+                  <span className="badge-unlocked">{t("unlocked")}</span>
+                )}
+                {!notUploaded && <span className="text-gray-400">›</span>}
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Unlock CTA */}
-      {!hasAccess && exams.length > 0 && (
-        <div className="mt-6 card border-2 border-green-200 bg-green-50">
-          <div className="text-center">
-            <div className="text-3xl mb-2">🔓</div>
-            <h3 className="font-bold text-gray-800 mb-1">Unlock Full Access</h3>
-            <p className="text-gray-500 text-sm mb-4">Access all exams and all questions for 200 ETB</p>
-            <button onClick={() => router.push(`/payment/${id}`)} className="btn-primary">
-              {t("payToUnlock")} – 200 ETB
-            </button>
-          </div>
+      {!hasAccess && (
+        <div className="mt-6 rounded-2xl p-5 border-2 border-green-200 bg-green-50 text-center">
+          <div className="text-3xl mb-2">🔓</div>
+          <h3 className="font-bold text-gray-800 mb-1">Unlock Full Department Access</h3>
+          <p className="text-gray-500 text-sm mb-4">
+            One payment unlocks all exam years and all questions for this department
+          </p>
+          <button onClick={() => router.push(`/payment/${id}`)} className="btn-primary">
+            {t("payToUnlock")} – 200 ETB
+          </button>
         </div>
       )}
 
-      {/* Telegram channel */}
+      {/* Telegram */}
       <a href="https://t.me/exitexamethiopia1" target="_blank" rel="noopener noreferrer"
-        className="mt-4 flex items-center justify-center gap-2 text-green-600 text-sm font-medium hover:underline">
-        <span>✈️</span> Join Telegram Channel for updates
+        className="mt-5 flex items-center justify-center gap-2 text-green-600 text-sm font-medium hover:underline">
+        <span>✈️</span> Join Telegram for exam updates
       </a>
     </div>
   );

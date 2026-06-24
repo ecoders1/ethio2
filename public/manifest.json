@@ -1,26 +1,53 @@
 {
-  "name": "EEE – Exit Exam Ethiopia",
+  "name": "Exit Exam Ethiopia – EEE",
   "short_name": "EEE",
-  "description": "Prepare, Practice, Pass. Join t.me/exitexamethiopia1",
-  "start_url": "/",
+  "description": "Prepare, Practice, Pass. Ethiopia's #1 Exit Exam prep platform. t.me/exitexamethiopia1",
+  "start_url": "/home",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#f0fdf4",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#0f4c2a",
   "theme_color": "#16a34a",
   "orientation": "portrait-primary",
+  "lang": "en",
+  "categories": ["education"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "categories": ["education"],
-  "screenshots": []
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Departments",
+      "url": "/departments",
+      "description": "Browse exam departments"
+    },
+    {
+      "name": "My Exams",
+      "url": "/exams",
+      "description": "View available exams"
+    }
+  ]
 }
