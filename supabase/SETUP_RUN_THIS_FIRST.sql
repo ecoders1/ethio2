@@ -173,18 +173,18 @@ VALUES (
 DO $$
 DECLARE
   dept_rec  RECORD;
-  exam_id   UUID;
+  v_exam_id UUID;
   yr        INTEGER;
 BEGIN
   FOR dept_rec IN SELECT id, name FROM departments LOOP
     FOR yr IN SELECT * FROM unnest(ARRAY[2015,2016,2017,2018]) AS t(yr) LOOP
 
       -- Create exam if not exists
-      SELECT id INTO exam_id
+      SELECT id INTO v_exam_id
       FROM exams
       WHERE department_id = dept_rec.id AND year = yr;
 
-      IF exam_id IS NULL THEN
+      IF v_exam_id IS NULL THEN
         INSERT INTO exams (id, department_id, year, title, is_free, is_active)
         VALUES (
           uuid_generate_v4(),
@@ -193,17 +193,17 @@ BEGIN
           dept_rec.name || ' ' || yr || ' Exit Exam',
           FALSE,
           TRUE
-        ) RETURNING id INTO exam_id;
+        ) RETURNING id INTO v_exam_id;
       END IF;
 
       -- Add questions only if exam is empty
-      IF NOT EXISTS (SELECT 1 FROM questions WHERE exam_id = exam_id) THEN
+      IF NOT EXISTS (SELECT 1 FROM questions WHERE exam_id = v_exam_id) THEN
         INSERT INTO questions
           (id, exam_id, question_number, question_text,
            option_a, option_b, option_c, option_d,
            correct_answer, explanation)
         VALUES
-        (uuid_generate_v4(), exam_id, 1,
+        (uuid_generate_v4(), v_exam_id, 1,
          'What is the primary function of an operating system?',
          'Store files permanently',
          'Manage hardware and software resources',
@@ -211,59 +211,59 @@ BEGIN
          'Run antivirus software',
          'B', 'An OS manages CPU, memory, I/O devices and provides services.'),
 
-        (uuid_generate_v4(), exam_id, 2,
+        (uuid_generate_v4(), v_exam_id, 2,
          'Which data structure follows Last In First Out (LIFO)?',
          'Queue', 'Array', 'Stack', 'Linked List',
          'C', 'Stack is LIFO — last inserted is first removed.'),
 
-        (uuid_generate_v4(), exam_id, 3,
+        (uuid_generate_v4(), v_exam_id, 3,
          'What does CPU stand for?',
          'Central Program Unit', 'Core Processing Unit',
          'Central Processing Unit', 'Computer Protocol Unit',
          'C', 'CPU = Central Processing Unit, the brain of a computer.'),
 
-        (uuid_generate_v4(), exam_id, 4,
+        (uuid_generate_v4(), v_exam_id, 4,
          'Which SQL statement is used to retrieve data?',
          'INSERT', 'DELETE', 'UPDATE', 'SELECT',
          'D', 'SELECT retrieves data from one or more tables.'),
 
-        (uuid_generate_v4(), exam_id, 5,
+        (uuid_generate_v4(), v_exam_id, 5,
          'Which of these is NOT a feature of OOP?',
          'Encapsulation', 'Compilation', 'Inheritance', 'Polymorphism',
          'B', 'OOP pillars: Encapsulation, Inheritance, Polymorphism, Abstraction.'),
 
-        (uuid_generate_v4(), exam_id, 6,
+        (uuid_generate_v4(), v_exam_id, 6,
          'What is the time complexity of Binary Search?',
          'O(n)', 'O(n²)', 'O(log n)', 'O(n log n)',
          'C', 'Binary search halves the array each step: O(log n).'),
 
-        (uuid_generate_v4(), exam_id, 7,
+        (uuid_generate_v4(), v_exam_id, 7,
          'Which protocol is used to send emails?',
          'FTP', 'HTTP', 'SMTP', 'SNMP',
          'C', 'SMTP = Simple Mail Transfer Protocol for sending emails.'),
 
-        (uuid_generate_v4(), exam_id, 8,
+        (uuid_generate_v4(), v_exam_id, 8,
          'What is the base of the binary number system?',
          '8', '10', '16', '2',
          'D', 'Binary uses base 2 — only digits 0 and 1.'),
 
-        (uuid_generate_v4(), exam_id, 9,
+        (uuid_generate_v4(), v_exam_id, 9,
          'Which OSI layer is responsible for routing?',
          'Session', 'Transport', 'Data Link', 'Network',
          'D', 'Network Layer (Layer 3) routes packets using IP.'),
 
-        (uuid_generate_v4(), exam_id, 10,
+        (uuid_generate_v4(), v_exam_id, 10,
          'What does RAM stand for?',
          'Read Access Memory', 'Random Access Memory',
          'Rapid Access Module', 'Read And Modify',
          'B', 'RAM = Random Access Memory, volatile primary storage.'),
 
-        (uuid_generate_v4(), exam_id, 11,
+        (uuid_generate_v4(), v_exam_id, 11,
          'Which sorting algorithm has O(n log n) average time complexity?',
          'Bubble Sort', 'Insertion Sort', 'Merge Sort', 'Selection Sort',
          'C', 'Merge Sort consistently performs at O(n log n).'),
 
-        (uuid_generate_v4(), exam_id, 12,
+        (uuid_generate_v4(), v_exam_id, 12,
          'What is polymorphism in OOP?',
          'Multiple inheritance only',
          'Same interface, different implementations',
@@ -271,7 +271,7 @@ BEGIN
          'Creating multiple objects',
          'B', 'Polymorphism: one interface, many behaviors.'),
 
-        (uuid_generate_v4(), exam_id, 13,
+        (uuid_generate_v4(), v_exam_id, 13,
          'What does HTTP stand for?',
          'HyperText Transfer Protocol',
          'High Transfer Text Process',
@@ -279,12 +279,12 @@ BEGIN
          'HyperText Terminal Program',
          'A', 'HTTP is the foundation protocol of the World Wide Web.'),
 
-        (uuid_generate_v4(), exam_id, 14,
+        (uuid_generate_v4(), v_exam_id, 14,
          'Which of the following is a non-volatile storage device?',
          'RAM', 'Cache', 'Hard Disk Drive', 'CPU Register',
          'C', 'HDD retains data without power; RAM is volatile.'),
 
-        (uuid_generate_v4(), exam_id, 15,
+        (uuid_generate_v4(), v_exam_id, 15,
          'What is a compiler?',
          'Runs code line by line',
          'Translates source code to machine code',
@@ -292,12 +292,12 @@ BEGIN
          'Manages memory allocation',
          'B', 'A compiler translates high-level source code to machine code.'),
 
-        (uuid_generate_v4(), exam_id, 16,
+        (uuid_generate_v4(), v_exam_id, 16,
          'Which HTML tag is used to create a hyperlink?',
          '<link>', '<a>', '<href>', '<url>',
          'B', 'The <a> anchor tag creates hyperlinks in HTML.'),
 
-        (uuid_generate_v4(), exam_id, 17,
+        (uuid_generate_v4(), v_exam_id, 17,
          'What is a primary key in a database?',
          'A key that can be NULL',
          'A key that uniquely identifies each row',
@@ -305,17 +305,17 @@ BEGIN
          'A foreign reference key',
          'B', 'Primary key uniquely identifies each record in a table.'),
 
-        (uuid_generate_v4(), exam_id, 18,
+        (uuid_generate_v4(), v_exam_id, 18,
          'What is the result of 0 AND 1 in Boolean algebra?',
          '1', '0', 'True', 'Undefined',
          'B', 'AND returns 1 only when both inputs are 1.'),
 
-        (uuid_generate_v4(), exam_id, 19,
+        (uuid_generate_v4(), v_exam_id, 19,
          'Which OSI layer handles data encryption?',
          'Network', 'Transport', 'Presentation', 'Session',
          'C', 'Presentation Layer (Layer 6) handles encryption and formatting.'),
 
-        (uuid_generate_v4(), exam_id, 20,
+        (uuid_generate_v4(), v_exam_id, 20,
          'What is encapsulation in OOP?',
          'Inheriting properties from a parent class',
          'Wrapping data and methods into a single unit',
@@ -323,11 +323,11 @@ BEGIN
          'Overriding parent class methods',
          'B', 'Encapsulation bundles data and methods, hiding internal details.');
 
-      END IF; -- end if no questions
-    END LOOP; -- end year loop
-  END LOOP;   -- end dept loop
+      END IF;
+    END LOOP;
+  END LOOP;
 
-  RAISE NOTICE 'Sample exams and questions seeded for all departments.';
+  RAISE NOTICE 'Done — sample exams and questions created for all departments.';
 END $$;
 
 -- ── Final verification ────────────────────────────────────────
