@@ -1,34 +1,29 @@
 "use client";
 import { useEffect } from "react";
 
-// URLs to pre-cache for offline use after login
-const OFFLINE_URLS = [
-  "/api/departments",
-  "/api/exams",
-  "/api/settings",
-];
-
 export default function PWARegister() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
 
-    navigator.serviceWorker
-      .register("/sw.js")
+    navigator.serviceWorker.register("/sw.js", { scope: "/" })
       .then(reg => {
-        console.log("SW registered:", reg.scope);
-
-        // Tell SW to cache exam data for offline
-        const sw = reg.active || reg.installing || reg.waiting;
-        if (sw) {
-          sw.postMessage({ type: "CACHE_EXAM_DATA", urls: OFFLINE_URLS });
-        }
-
-        // Also send after SW becomes active
-        navigator.serviceWorker.ready.then(readyReg => {
-          readyReg.active?.postMessage({ type: "CACHE_EXAM_DATA", urls: OFFLINE_URLS });
+        // Update SW on new version
+        reg.addEventListener("updatefound", () => {
+          const newSW = reg.installing;
+          newSW?.addEventListener("statechange", () => {
+            if (newSW.state === "installed" && navigator.serviceWorker.controller) {
+              newSW.postMessage({ type: "SKIP_WAITING" });
+            }
+          });
         });
       })
       .catch(err => console.warn("SW registration failed:", err));
+
+    // Reload page when new SW takes over
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!refreshing) { refreshing = true; window.location.reload(); }
+    });
   }, []);
 
   return null;

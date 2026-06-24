@@ -114,6 +114,11 @@ function LandingContent() {
           <span className="text-green-400 font-semibold">@exitexamethiopia1</span>
         </a>
 
+        {/* PWA install hint for mobile */}
+        <p className="mt-3 text-white/40 text-xs">
+          📲 Install as app — works offline after sign in
+        </p>
+
         {/* Ethiopian flag colors strip */}
         <div className="absolute bottom-0 left-0 right-0 flex h-1">
           <div className="flex-1 bg-green-500" />
