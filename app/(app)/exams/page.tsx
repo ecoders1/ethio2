@@ -15,19 +15,13 @@ export default function ExamsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/exams").then(r => r.json()),
-      fetch("/api/access").then(r => r.json()),
-    ]).then(([eData, aData]) => {
-      const allExams: Exam[] = eData.exams || [];
-      const accessList: string[] = aData.access || [];
-      // Only show exams user has unlocked (paid for)
-      const unlocked = allExams.filter(e =>
-        e.is_free || accessList.includes(e.department_id)
-      );
-      setUnlockedExams(unlocked);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    // Use unlocked_only=true so server filters by user's paid departments
+    fetch("/api/exams?unlocked_only=true")
+      .then(r => r.json())
+      .then(eData => {
+        setUnlockedExams(eData.exams || []);
+        setLoading(false);
+      }).catch(() => setLoading(false));
   }, []);
 
   if (loading) return (
