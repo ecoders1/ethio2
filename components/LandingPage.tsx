@@ -31,12 +31,11 @@ function LandingContent() {
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0f4c2a 0%, #166534 50%, #14532d 100%)" }}>
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="absolute rounded-full border border-white"
-            style={{ width: `${200 + i * 100}px`, height: `${200 + i * 100}px`, top: "50%", left: "50%", transform: "translate(-50%, -50%)" }} />
-        ))}
+      {/* Background SVG with graduation cap */}
+      <div className="absolute inset-0 pointer-events-none select-none">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/bg-hero.svg" alt="" aria-hidden="true"
+          className="w-full h-full object-cover opacity-100" />
       </div>
 
       {/* Language switcher */}

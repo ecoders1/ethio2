@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#166534" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background glow -->
+  <ellipse cx="400" cy="300" rx="400" ry="300" fill="url(#glow)"/>
+
+  <!-- ── Graduation Cap (center) ── -->
+  <g transform="translate(400,210)" opacity="0.18">
+    <!-- Cap board (mortarboard top) -->
+    <polygon points="0,-44 120,0 0,44 -120,0" fill="#ffffff"/>
+    <!-- Cap top shine -->
+    <polygon points="0,-44 120,0 0,0 -120,0" fill="#dcfce7" opacity="0.4"/>
+    <!-- Cap base cylinder -->
+    <rect x="-44" y="0" width="88" height="44" rx="4" fill="#ffffff" opacity="0.9"/>
+    <!-- Tassel string -->
+    <line x1="120" y1="0" x2="120" y2="60" stroke="#fbbf24" stroke-width="3"/>
+    <circle cx="120" cy="60" r="6" fill="#fbbf24"/>
+    <!-- Tassel fringe -->
+    <line x1="114" y1="60" x2="108" y2="80" stroke="#fbbf24" stroke-width="2"/>
+    <line x1="120" y1="62" x2="120" y2="82" stroke="#fbbf24" stroke-width="2"/>
+    <line x1="126" y1="60" x2="132" y2="80" stroke="#fbbf24" stroke-width="2"/>
+  </g>
+
+  <!-- ── Decorative circles (concentric rings) ── -->
+  <circle cx="400" cy="300" r="180" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.06"/>
+  <circle cx="400" cy="300" r="240" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.05"/>
+  <circle cx="400" cy="300" r="300" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.04"/>
+  <circle cx="400" cy="300" r="360" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.03"/>
+
+  <!-- ── Small floating graduation caps (scattered) ── -->
+  <!-- Top-left cap -->
+  <g transform="translate(110,100) rotate(-15) scale(0.35)" opacity="0.12">
+    <polygon points="0,-44 120,0 0,44 -120,0" fill="#ffffff"/>
+    <rect x="-44" y="0" width="88" height="44" rx="4" fill="#ffffff"/>
+    <line x1="120" y1="0" x2="120" y2="55" stroke="#fbbf24" stroke-width="4"/>
+    <circle cx="120" cy="55" r="8" fill="#fbbf24"/>
+  </g>
+
+  <!-- Top-right cap -->
+  <g transform="translate(690,90) rotate(10) scale(0.3)" opacity="0.10">
+    <polygon points="0,-44 120,0 0,44 -120,0" fill="#ffffff"/>
+    <rect x="-44" y="0" width="88" height="44" rx="4" fill="#ffffff"/>
+    <line x1="120" y1="0" x2="120" y2="55" stroke="#fbbf24" stroke-width="4"/>
+    <circle cx="120" cy="55" r="8" fill="#fbbf24"/>
+  </g>
+
+  <!-- Bottom-left cap -->
+  <g transform="translate(80,460) rotate(20) scale(0.28)" opacity="0.09">
+    <polygon points="0,-44 120,0 0,44 -120,0" fill="#ffffff"/>
+    <rect x="-44" y="0" width="88" height="44" rx="4" fill="#ffffff"/>
+    <line x1="120" y1="0" x2="120" y2="55" stroke="#fbbf24" stroke-width="4"/>
+    <circle cx="120" cy="55" r="8" fill="#fbbf24"/>
+  </g>
+
+  <!-- Bottom-right cap -->
+  <g transform="translate(700,480) rotate(-12) scale(0.32)" opacity="0.10">
+    <polygon points="0,-44 120,0 0,44 -120,0" fill="#ffffff"/>
+    <rect x="-44" y="0" width="88" height="44" rx="4" fill="#ffffff"/>
+    <line x1="120" y1="0" x2="120" y2="55" stroke="#fbbf24" stroke-width="4"/>
+    <circle cx="120" cy="55" r="8" fill="#fbbf24"/>
+  </g>
+
+  <!-- ── Stars / dots ── -->
+  <circle cx="200" cy="160" r="2" fill="#ffffff" opacity="0.3"/>
+  <circle cx="580" cy="130" r="3" fill="#ffffff" opacity="0.25"/>
+  <circle cx="650" cy="340" r="2" fill="#ffffff" opacity="0.2"/>
+  <circle cx="150" cy="380" r="2.5" fill="#ffffff" opacity="0.25"/>
+  <circle cx="330" cy="490" r="2" fill="#ffffff" opacity="0.2"/>
+  <circle cx="490" cy="470" r="2" fill="#ffffff" opacity="0.2"/>
+  <circle cx="740" cy="220" r="2" fill="#ffffff" opacity="0.2"/>
+  <circle cx="60"  cy="250" r="2" fill="#ffffff" opacity="0.2"/>
+
+  <!-- ── Ethiopian flag stripe (bottom) ── -->
+  <rect x="0" y="570" width="267" height="30" fill="#16a34a" opacity="0.6"/>
+  <rect x="267" y="570" width="266" height="30" fill="#fbbf24" opacity="0.6"/>
+  <rect x="533" y="570" width="267" height="30" fill="#dc2626" opacity="0.6"/>
+</svg>
