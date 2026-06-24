@@ -75,15 +75,16 @@ export default function DepartmentDetailPage() {
           const notUploaded = !exam;
 
           const handleClick = () => {
-            if (notUploaded) return;
-            if (isLocked) router.push(`/payment/${id}`);
-            else router.push(`/exams/${exam.id}`);
+            // Always go to payment page if not unlocked — even if no exam yet
+            if (isLocked) { router.push(`/payment/${id}`); return; }
+            if (notUploaded) return; // unlocked but no exam yet — coming soon
+            router.push(`/exams/${exam.id}`);
           };
 
           return (
             <button key={year} onClick={handleClick}
               className={`w-full card text-left flex items-center justify-between transition-all ${
-                notUploaded ? "opacity-50 cursor-default" :
+                notUploaded && !isLocked ? "opacity-50 cursor-default" :
                 "hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
               }`}>
               <div className="flex items-center gap-3">
