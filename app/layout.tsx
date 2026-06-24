@@ -7,26 +7,47 @@ const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: "EEE – Exit Exam Ethiopia",
-  description:
-    "Prepare, Practice, Pass. Ethiopia's premier Exit Exam preparation platform for university students.",
-  keywords: "exit exam, Ethiopia, university, preparation, MCQ, practice",
+  description: "Prepare, Practice, Pass. Ethiopia's #1 Exit Exam preparation platform.",
+  keywords: "exit exam, Ethiopia, university, MCQ, preparation, practice",
   manifest: "/manifest.json",
+  // iOS PWA
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "EEE",
+    startupImage: [
+      { url: "/icons/icon-512.svg" },
+    ],
   },
+  // Icons
   icons: {
-    icon: "/icons/icon-192.png",
-    apple: "/icons/apple-touch-icon.png",
+    icon: [
+      { url: "/icons/icon.svg",     type: "image/svg+xml" },
+      { url: "/icons/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },
+      { url: "/icons/icon-512.svg", sizes: "512x512", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/icons/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },
+    ],
+    shortcut: "/icons/icon.svg",
+  },
+  // Open Graph
+  openGraph: {
+    title: "EEE – Exit Exam Ethiopia",
+    description: "Prepare, Practice, Pass.",
+    type: "website",
   },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  themeColor: "#16a34a",
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#16a34a" },
+    { media: "(prefers-color-scheme: dark)",  color: "#14532d" },
+  ],
 };
 
 export default function RootLayout({
@@ -34,6 +55,17 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={inter.className}>
+      <head>
+        {/* iOS web app meta */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="EEE" />
+        {/* Windows tile */}
+        <meta name="msapplication-TileColor" content="#16a34a" />
+        <meta name="msapplication-TileImage" content="/icons/icon-192.svg" />
+        <meta name="msapplication-config" content="none" />
+      </head>
       <body>
         <PWARegister />
         {children}
