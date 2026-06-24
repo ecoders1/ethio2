@@ -5,6 +5,23 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import BottomNav from "./BottomNav";
 
+// Cache exam data on device after sign-in for offline use
+function cacheExamDataOffline(userId: string) {
+  if (!("serviceWorker" in navigator)) return;
+  const urls = [
+    "/api/departments",
+    "/api/exams",
+    "/api/settings",
+    "/api/access",
+    `/api/results`,
+  ];
+  // Store that this user has downloaded data
+  localStorage.setItem(`eee_offline_${userId}`, "1");
+  navigator.serviceWorker.ready.then(reg => {
+    reg.active?.postMessage({ type: "CACHE_EXAM_DATA", urls });
+  });
+}
+
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -14,6 +31,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!loading && !user) {
       router.push("/auth/signin");
+    }
+    // Download exam data for offline use after login
+    if (!loading && user) {
+      const key = `eee_offline_${user.id}`;
+      if (!localStorage.getItem(key)) {
+        cacheExamDataOffline(user.id);
+      }
     }
   }, [user, loading, router]);
 

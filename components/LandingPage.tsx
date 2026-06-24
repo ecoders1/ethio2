@@ -34,7 +34,7 @@ function LandingContent() {
       {/* Background SVG with graduation cap */}
       <div className="absolute inset-0 pointer-events-none select-none">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/bg-hero.svg" alt="" aria-hidden="true"
+        <img src="/globe.svg" alt="" aria-hidden="true"
           className="w-full h-full object-cover opacity-100" />
       </div>
 
@@ -104,6 +104,14 @@ function LandingContent() {
             {t("signIn")}
           </button>
         </p>
+
+        {/* Telegram channel */}
+        <a href="https://t.me/exitexamethiopia1" target="_blank" rel="noopener noreferrer"
+          className="mt-4 flex items-center gap-2 text-white/60 hover:text-white text-sm transition-colors">
+          <span className="text-lg">✈️</span>
+          <span>Join our Telegram channel</span>
+          <span className="text-green-400 font-semibold">@exitexamethiopia1</span>
+        </a>
 
         {/* Ethiopian flag colors strip */}
         <div className="absolute bottom-0 left-0 right-0 flex h-1">
