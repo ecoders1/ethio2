@@ -73,8 +73,8 @@ export default function ExamPage() {
     ]).then(([eData, qData]) => {
       setExam(eData.exam || null);
       setQuestions(qData.questions || []);
-      setPhase("exam");
-    }).catch(() => setPhase("loading"));
+      setPhase("exam"); // always go to exam phase — empty questions handled separately
+    }).catch(() => setPhase("exam"));
   }, [examId]);
 
   const handleAnswer = (questionId: string, option: string) => {
@@ -177,20 +177,27 @@ export default function ExamPage() {
     );
   }
 
-  if (!q) {
+  if (phase === "exam" && questions.length === 0) {
     return (
       <div className="px-4 py-6 text-center animate-fade-in">
         <div className="text-6xl mb-4">📭</div>
-        <h2 className="text-xl font-bold text-gray-800 mb-2">No Questions Yet</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Questions Not Uploaded Yet</h2>
         <p className="text-gray-500 text-sm mb-2">
-          The admin hasn&apos;t uploaded questions for this exam yet.
+          The admin hasn&apos;t added questions for this exam yet.
         </p>
+        <p className="text-gray-400 text-xs mb-1">Your access is active ✓</p>
         <p className="text-gray-400 text-xs mb-6">
-          Your access is active — questions will appear here once added.
+          Questions will appear here once the admin uploads them.
         </p>
-        <button onClick={() => router.back()} className="btn-primary px-8 py-3">
-          ← Go Back
-        </button>
+        <a href="https://t.me/exitexamethiopia1" target="_blank" rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-green-600 font-semibold text-sm mb-6 hover:underline">
+          ✈️ Contact us on Telegram
+        </a>
+        <div className="mt-4">
+          <button onClick={() => router.back()} className="btn-primary px-8 py-3">
+            ← Go Back
+          </button>
+        </div>
       </div>
     );
   }
