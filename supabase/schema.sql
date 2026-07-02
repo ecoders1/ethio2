@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS payments (
   id             UUID          PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id        UUID          NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   department_id  UUID          NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
-  amount         DECIMAL(10,2) NOT NULL DEFAULT 200.00,
+  amount         DECIMAL(10,2) NOT NULL DEFAULT 100.00,
   screenshot_url TEXT,
   status         TEXT          NOT NULL DEFAULT 'pending'
                                CHECK (status IN ('pending','approved','rejected')),

@@ -10,35 +10,50 @@ export async function POST(req: NextRequest) {
   if (!payload?.isAdmin)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const formData = await req.formData();
-  const file   = formData.get("file") as File | null;
-  const examId = formData.get("exam_id") as string | null;
+  const formData    = await req.formData();
+  const file        = formData.get("file") as File | null;
+  const examId      = formData.get("exam_id") as string | null;
+  const textContent = formData.get("text_content") as string | null;
+  const replaceStr  = formData.get("replace_questions") as string | null;
 
-  if (!file || !examId)
-    return NextResponse.json({ error: "file and exam_id are required" }, { status: 400 });
-
-  const bytes  = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
+  if (!examId)
+    return NextResponse.json({ error: "exam_id is required" }, { status: 400 });
+  if (!file && !textContent?.trim())
+    return NextResponse.json({ error: "Either a file or text_content is required" }, { status: 400 });
 
   const supabase = createServerSupabaseClient();
 
-  // Upload to storage
-  await supabase.storage
-    .from("exam-files")
-    .upload(`uploads/${examId}/${Date.now()}_${file.name.replace(/\s+/g,"_")}`, buffer, {
-      contentType: file.type,
-    }).catch(() => null);
+  // Start with pasted text (if any)
+  let combinedText = textContent?.trim() || "";
 
-  // Extract text
-  const text = await extractTextFromBuffer(buffer, file.type, file.name).catch(() => "");
+  if (file) {
+    const bytes  = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-  // Get current question count
+    // Upload to storage (non-fatal)
+    await supabase.storage
+      .from("exam-files")
+      .upload(`uploads/${examId}/${Date.now()}_${file.name.replace(/\s+/g, "_")}`, buffer, {
+        contentType: file.type,
+      }).catch(() => null);
+
+    // Extract text and merge
+    const fileText = await extractTextFromBuffer(buffer, file.type, file.name).catch(() => "");
+    combinedText = combinedText ? combinedText + "\n\n" + fileText : fileText;
+  }
+
+  // Clear existing questions if replace requested
+  if (replaceStr === "true") {
+    await supabase.from("questions").delete().eq("exam_id", examId);
+  }
+
+  // Get current question count for numbering
   const { count } = await supabase
     .from("questions").select("id", { count: "exact" }).eq("exam_id", examId);
   const startNumber = (count || 0) + 1;
 
   // Parse MCQ
-  const questions = parseMCQFromText(text, examId, startNumber);
+  const questions = parseMCQFromText(combinedText, examId, startNumber);
   let savedCount = 0;
 
   if (questions.length > 0) {
@@ -62,7 +77,7 @@ export async function POST(req: NextRequest) {
     extracted: questions.length,
     saved: savedCount,
     message: savedCount > 0
-      ? `✅ ${savedCount} questions extracted and saved from ${file.name}`
-      : `📄 File uploaded. Use TXT/MCQ format for auto-extraction.`,
+      ? `✅ ${savedCount} questions extracted and saved`
+      : `📄 File uploaded. No MCQ format detected. Use TXT format for auto-extraction.`,
   });
 }

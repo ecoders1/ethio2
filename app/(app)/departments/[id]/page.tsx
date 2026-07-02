@@ -35,12 +35,23 @@ export default function DepartmentDetailPage() {
   const getDeptName = (d: Department) =>
     language === "am" ? d.name_am || d.name : language === "om" ? d.name_om || d.name : d.name;
 
-  const getExamForYear = (year: number) => exams.find(e => e.year === year);
+  // Deduplicate exams by year — keep the one with the highest id (most recently created)
+  // This prevents duplicate year buttons when the DB has multiple records for the same year
+  const dedupedExams = Object.values(
+    exams.reduce<Record<number, Exam>>((acc, e) => {
+      if (!acc[e.year]) {
+        acc[e.year] = e;
+      }
+      return acc;
+    }, {})
+  );
 
-  // Build merged year list: standard years + any extra years admin uploaded
-  const uploadedYears = exams.map(e => e.year);
+  const getExamForYear = (year: number) => dedupedExams.find(e => e.year === year);
+
+  // Build merged year list: standard years + any extra years admin uploaded (no duplicates)
+  const uploadedYears = dedupedExams.map(e => e.year);
   const extraYears = uploadedYears.filter(y => !STANDARD_YEARS.includes(y));
-  const allYears = [...STANDARD_YEARS, ...extraYears].sort((a, b) => a - b);
+  const allYears = [...new Set([...STANDARD_YEARS, ...extraYears])].sort((a, b) => a - b);
 
   if (loading) return (
     <div className="px-4 py-6 space-y-3">
@@ -72,20 +83,20 @@ export default function DepartmentDetailPage() {
                 ✓ Full Access – All questions unlocked
               </span>
             : <span className="bg-yellow-400/20 text-yellow-200 text-xs px-3 py-1 rounded-full font-medium">
-                🔒 Locked – Pay 200 ETB to unlock all
+                🔒 Locked – Pay 100 ETB to unlock all
               </span>
           }
         </div>
       </div>
 
       {/* Uploaded exams — visible after unlock */}
-      {hasAccess && exams.length > 0 && (
+      {hasAccess && dedupedExams.length > 0 && (
         <div className="mb-5">
           <h2 className="font-bold text-gray-800 mb-3">
-            ✅ Available Exams ({exams.length})
+            ✅ Available Exams ({dedupedExams.length})
           </h2>
           <div className="space-y-2">
-            {exams
+            {dedupedExams
               .sort((a, b) => a.year - b.year)
               .map(exam => (
                 <button key={exam.id}
@@ -154,7 +165,7 @@ export default function DepartmentDetailPage() {
                   <div className="font-semibold text-gray-800">{year} Exam</div>
                   <div className="text-xs text-gray-500 mt-0.5">
                     {isLocked
-                      ? "Pay 200 ETB to unlock"
+                      ? "Pay 100 ETB to unlock"
                       : hasExam
                         ? `${exam.title} – tap to start`
                         : "Coming soon"}
@@ -184,7 +195,7 @@ export default function DepartmentDetailPage() {
             One payment — access all exam years and all questions for this department
           </p>
           <button onClick={() => router.push(`/payment/${id}`)} className="btn-primary">
-            {t("payToUnlock")} – 200 ETB
+            {t("payToUnlock")} – 100 ETB
           </button>
         </div>
       )}

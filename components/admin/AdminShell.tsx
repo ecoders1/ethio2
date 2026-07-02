@@ -9,6 +9,7 @@ const navLinks = [
   { href: "/admin/users", label: "Users", icon: "👥" },
   { href: "/admin/departments", label: "Departments", icon: "📚" },
   { href: "/admin/exams", label: "Exams", icon: "📝" },
+  { href: "/admin/seed", label: "Seed Exams", icon: "🌱" },
   { href: "/admin/exams/upload", label: "Upload Files", icon: "📤" },
   { href: "/admin/questions", label: "Questions", icon: "❓" },
   { href: "/admin/payments", label: "Payments", icon: "💳" },

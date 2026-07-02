@@ -22,8 +22,47 @@ export default function AdminExamsPage() {
   const [filterDept, setFilterDept]   = useState("");
   const [filterStatus, setFilterStatus] = useState<"" | "active" | "inactive">("");
   const [toast, setToast]             = useState("");
+  const [seeding, setSeeding]         = useState(false);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
+  const [seeding2, setSeeding2]       = useState(false);
+
+  const handleSeedCS2018 = async () => {
+    if (!confirm("Insert all 100 CS 2018 questions into the database?")) return;
+    setSeeding(true);
+    try {
+      const res = await fetch("/api/admin/seed-cs-2018", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`✅ CS 2018 seeded — ${data.questions_inserted} questions inserted`);
+        fetchAll();
+      } else {
+        showToast(`❌ Failed: ${data.error || data.errors?.join(", ")}`);
+      }
+    } catch {
+      showToast("❌ Network error");
+    }
+    setSeeding(false);
+  };
+
+  const handleSeedCivil2015 = async () => {
+    if (!confirm("Insert Civil Engineering 2015 questions into the database?")) return;
+    setSeeding2(true);
+    try {
+      const res = await fetch("/api/admin/seed-civil-2015", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`✅ Civil 2015 seeded — ${data.questions_inserted} questions inserted`);
+        fetchAll();
+      } else {
+        showToast(`❌ Failed: ${data.error || data.errors?.join(", ")}`);
+      }
+    } catch {
+      showToast("❌ Network error");
+    }
+    setSeeding2(false);
+  };
 
   const fetchAll = () => {
     setLoading(true);
@@ -105,7 +144,17 @@ export default function AdminExamsPage() {
           <h1 className="text-2xl font-bold text-gray-800">Exams</h1>
           <p className="text-gray-500 text-sm">{exams.length} total exams</p>
         </div>
-        <button onClick={openAdd} className="btn-primary px-5 py-2.5 text-sm">+ Add Exam</button>
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={handleSeedCivil2015} disabled={seeding2}
+            className="px-4 py-2.5 text-sm font-medium bg-orange-600 text-white rounded-xl hover:bg-orange-700 disabled:opacity-60 transition-all">
+            {seeding2 ? "Seeding…" : "🌱 Seed Civil 2015"}
+          </button>
+          <button onClick={handleSeedCS2018} disabled={seeding}
+            className="px-4 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-60 transition-all">
+            {seeding ? "Seeding…" : "🌱 Seed CS 2018"}
+          </button>
+          <button onClick={openAdd} className="btn-primary px-5 py-2.5 text-sm">+ Add Exam</button>
+        </div>
       </div>
 
       {/* Stats */}

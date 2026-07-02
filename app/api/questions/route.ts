@@ -30,13 +30,13 @@ export async function GET(req: NextRequest) {
   let limitTo20 = false;
 
   if (!payload) {
-    // Not logged in
+    // Not logged in — no questions
     limitTo20 = true;
   } else if (payload.isAdmin) {
     // Admin always sees all
     limitTo20 = false;
   } else if (exam.is_free) {
-    // Explicitly free exam
+    // Explicitly free exam — show all
     limitTo20 = false;
   } else {
     // Check user_department_access using service-role (bypasses RLS)
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
       console.error("Access check error:", accessErr.message);
     }
 
-    // If access row exists → user paid → show all questions
+    // If no access row → user hasn't paid → block all questions
     limitTo20 = !accessRow;
   }
 
@@ -64,8 +64,9 @@ export async function GET(req: NextRequest) {
     .eq("exam_id", examId)
     .order("question_number", { ascending: true });
 
+  // Locked users get zero questions (no free preview)
   if (limitTo20) {
-    query = query.lte("question_number", 20);
+    query = query.lte("question_number", 0);
   }
 
   const { data, error } = await query;

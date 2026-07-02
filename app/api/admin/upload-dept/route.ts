@@ -20,13 +20,21 @@ export async function POST(req: NextRequest) {
   const file        = formData.get("file") as File | null;
   const departmentId = formData.get("department_id") as string | null;
   const yearStr     = formData.get("year") as string | null;
+  const textContent = formData.get("text_content") as string | null;
+  const isFreeStr   = formData.get("is_free") as string | null;
+  const replaceStr  = formData.get("replace_questions") as string | null;
 
-  if (!file || !departmentId || !yearStr)
-    return NextResponse.json({ error: "file, department_id, and year are required" }, { status: 400 });
+  if (!departmentId || !yearStr)
+    return NextResponse.json({ error: "department_id and year are required" }, { status: 400 });
+  if (!file && !textContent?.trim())
+    return NextResponse.json({ error: "Either a file or text_content is required" }, { status: 400 });
 
   const year = parseInt(yearStr);
   if (isNaN(year))
     return NextResponse.json({ error: "Invalid year" }, { status: 400 });
+
+  const isFree = isFreeStr === "true";
+  const replaceQuestions = replaceStr === "true";
 
   const supabase = createServerSupabaseClient();
 
@@ -36,14 +44,29 @@ export async function POST(req: NextRequest) {
 
   const examTitle = `${dept?.name || "Department"} ${year} Exit Exam`;
 
-  // Create or reuse exam
+  // Create or reuse exam — use maybeSingle to safely handle missing or multiple rows
   let examId: string;
-  const { data: existing } = await supabase
-    .from("exams").select("id")
-    .eq("department_id", departmentId).eq("year", year).single();
+  const { data: existingRows } = await supabase
+    .from("exams")
+    .select("id")
+    .eq("department_id", departmentId)
+    .eq("year", year)
+    .order("created_at", { ascending: true }); // oldest first
+
+  const existing = existingRows && existingRows.length > 0 ? existingRows[0] : null;
+
+  // If duplicates exist, delete the extras (keep oldest)
+  if (existingRows && existingRows.length > 1) {
+    const extraIds = existingRows.slice(1).map(r => r.id);
+    await supabase.from("exams").delete().in("id", extraIds);
+  }
 
   if (existing) {
     examId = existing.id;
+    // Update is_free if provided
+    if (isFreeStr !== null) {
+      await supabase.from("exams").update({ is_free: isFree }).eq("id", examId);
+    }
   } else {
     const { data: newExam, error: examErr } = await supabase
       .from("exams")
@@ -51,7 +74,7 @@ export async function POST(req: NextRequest) {
         id: crypto.randomUUID(),
         department_id: departmentId,
         year, title: examTitle,
-        is_free: false, is_active: true,
+        is_free: isFree, is_active: true,
       })
       .select("id").single();
 
@@ -60,25 +83,47 @@ export async function POST(req: NextRequest) {
     examId = newExam.id;
   }
 
+  // Clear existing questions if replace is requested
+  if (replaceQuestions) {
+    await supabase.from("questions").delete().eq("exam_id", examId);
+  }
+
   // Read file buffer
-  const bytes  = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  // Upload to storage (non-fatal if fails)
-  const safeFileName = file.name.replace(/\s+/g, "_");
-  await supabase.storage
-    .from("exam-files")
-    .upload(`uploads/${departmentId}/${year}_${Date.now()}_${safeFileName}`, buffer, {
-      contentType: file.type, upsert: false,
-    }).catch(() => null);
-
-  // Extract text from file
-  let extractedText = "";
+  let extractedText = textContent?.trim() || "";
   let parseError = "";
-  try {
-    extractedText = await extractTextFromBuffer(buffer, file.type, file.name);
-  } catch (e) {
-    parseError = String(e);
+
+  if (file) {
+    try {
+      const bytes  = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+
+      // Upload to storage (non-fatal if fails)
+      const safeFileName = file.name.replace(/\s+/g, "_");
+      supabase.storage                                   // fire-and-forget
+        .from("exam-files")
+        .upload(`uploads/${departmentId}/${year}_${Date.now()}_${safeFileName}`, buffer, {
+          contentType: file.type, upsert: false,
+        }).catch(() => null);
+
+      // Extract text with a 25-second timeout
+      const extractWithTimeout = Promise.race([
+        extractTextFromBuffer(buffer, file.type, file.name),
+        new Promise<string>((_, reject) =>
+          setTimeout(() => reject(new Error("Extraction timed out")), 25000)
+        ),
+      ]);
+
+      const fileText = await extractWithTimeout.catch((e) => {
+        parseError = String(e);
+        return "";
+      });
+
+      extractedText = extractedText
+        ? extractedText + "\n\n" + fileText
+        : fileText;
+    } catch (e) {
+      parseError = String(e);
+    }
   }
 
   // Get existing question count for numbering
@@ -115,17 +160,16 @@ export async function POST(req: NextRequest) {
     }
 
     if (savedCount > 0) {
-      message = `✅ Extracted and saved ${savedCount} questions from ${file.name}. Exam is now live.`;
+      message = `✅ Extracted and saved ${savedCount} questions. Exam is now live.`;
     } else if (extractedCount === 0) {
-      message = `📄 File uploaded (${file.name}). No MCQ format detected. ` +
-        `Use Admin → Questions to add questions manually, or use the TXT format below.`;
+      message = `📄 ${file ? `File uploaded (${file.name}).` : "Text received."} No MCQ format detected. Use the TXT format shown on the right.`;
     } else {
-      message = `⚠️ Found ${extractedCount} questions but failed to save. Check file format.`;
+      message = `⚠️ Found ${extractedCount} questions but failed to save. Check the format.`;
     }
   } else {
-    message = `📄 File uploaded (${file.name}). ` +
+    message = `📄 ${file ? `File uploaded (${file.name}).` : "No content received."} ` +
       (parseError ? `Parse note: ${parseError}. ` : "") +
-      `No text extracted. For best results use TXT format or copy-paste content.`;
+      `No text extracted. For best results use TXT format or paste MCQ text directly.`;
   }
 
   return NextResponse.json({
@@ -134,7 +178,7 @@ export async function POST(req: NextRequest) {
     extracted: extractedCount,
     saved: savedCount,
     message,
-    fileType: file.type,
+    fileType: file?.type ?? "text",
     textLength: extractedText.length,
   });
 }

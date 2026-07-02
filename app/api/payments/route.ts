@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     .eq("key", "department_price")
     .single();
 
-  const amount = priceSetting ? parseFloat(priceSetting.value) : 200;
+  const amount = priceSetting ? parseFloat(priceSetting.value) : 100;
 
   const { data, error } = await supabase
     .from("payments")

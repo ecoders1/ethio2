@@ -27,15 +27,20 @@ function LandingContent() {
         </div>
       </div>
     );
-  }
-
-  return (
-    <div className="min-h-screen relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0f4c2a 0%, #166534 50%, #14532d 100%)" }}>
-      {/* Background SVG with graduation cap */}
-      <div className="absolute inset-0 pointer-events-none select-none">
+  }  return (
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Hero background image */}
+      <div className="absolute inset-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/globe.svg" alt="" aria-hidden="true"
-          className="w-full h-full object-cover opacity-100" />
+        <img
+          src="/hero-exam.jpg"
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover object-center"
+          style={{ minHeight: "100vh", minWidth: "100vw" }}
+        />
+        {/* Dark green overlay for readability */}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(15,76,42,0.82) 0%, rgba(22,101,52,0.75) 50%, rgba(20,83,45,0.85) 100%)" }} />
       </div>
 
       {/* Language switcher */}

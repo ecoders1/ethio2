@@ -71,7 +71,7 @@ export default function PaymentPage() {
     setLoading(false);
   };
 
-  const price = settings.department_price || "200";
+  const price = settings.department_price || "100";
   const telegram = settings.telegram_username || "@milkibn";
   const accounts = [
     { label: "CBE (Commercial Bank)", number: settings.cbe_account || "1000458067857", icon: "🏦", color: "#1e40af" },

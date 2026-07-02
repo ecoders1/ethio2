@@ -180,14 +180,13 @@ export default function ExamPage() {
   if (phase === "exam" && questions.length === 0) {
     return (
       <div className="px-4 py-6 text-center animate-fade-in">
-        <div className="text-6xl mb-4">📭</div>
-        <h2 className="text-xl font-bold text-gray-800 mb-2">Questions Not Uploaded Yet</h2>
+        <div className="text-6xl mb-4">🔒</div>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Access Required</h2>
         <p className="text-gray-500 text-sm mb-2">
-          The admin hasn&apos;t added questions for this exam yet.
+          Pay 100 ETB to unlock all questions for this department.
         </p>
-        <p className="text-gray-400 text-xs mb-1">Your access is active ✓</p>
         <p className="text-gray-400 text-xs mb-6">
-          Questions will appear here once the admin uploads them.
+          Once approved, tap the exam button again to start.
         </p>
         <a href="https://t.me/exitexamethiopia1" target="_blank" rel="noopener noreferrer"
           className="inline-flex items-center gap-2 text-green-600 font-semibold text-sm mb-6 hover:underline">
@@ -202,7 +201,6 @@ export default function ExamPage() {
     );
   }
 
-  const isFreePreview = !exam?.is_free && questions.length <= 20;
   const progress = ((current + 1) / questions.length) * 100;
 
   return (
@@ -211,14 +209,6 @@ export default function ExamPage() {
       {warning && (
         <div className="fixed top-16 left-0 right-0 mx-4 z-50 bg-red-600 text-white text-center py-2 px-4 rounded-xl text-sm font-medium shadow-lg">
           {warning}
-        </div>
-      )}
-
-      {/* Free preview notice */}
-      {isFreePreview && (
-        <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-2.5 flex items-center gap-2 text-sm text-yellow-800">
-          <span>🔒</span>
-          <span><strong>Free Preview</strong> – Showing Q1–20. Pay 200 ETB to unlock all questions.</span>
         </div>
       )}
 
